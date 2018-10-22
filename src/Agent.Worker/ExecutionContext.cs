@@ -39,6 +39,7 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
         List<IAsyncCommandContext> AsyncCommands { get; }
         List<string> PrependPath { get; }
         ContainerInfo Container { get; }
+        List<ContainerInfo> SidecarContainers { get; }
 
         // Initialize
         void InitializeJob(Pipelines.AgentJobRequestMessage message, CancellationToken token);
@@ -98,6 +99,7 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
         public bool WriteDebug { get; private set; }
         public List<string> PrependPath { get; private set; }
         public ContainerInfo Container { get; private set; }
+        public List<ContainerInfo> SidecarContainers { get; private set; }
 
         public List<IAsyncCommandContext> AsyncCommands => _asyncCommands;
 
@@ -170,6 +172,7 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
             child._parentExecutionContext = this;
             child.PrependPath = PrependPath;
             child.Container = Container;
+            child.SidecarContainers = SidecarContainers;
 
             child.InitializeTimelineRecord(_mainTimelineId, recordId, _record.Id, ExecutionContextType.Task, displayName, refName, ++_childTimelineRecordOrder);
 
@@ -395,7 +398,7 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
             // Prepend Path
             PrependPath = new List<string>();
 
-            // Docker 
+            // Docker (JobContainer)
             string imageName = Variables.Get("_PREVIEW_VSTS_DOCKER_IMAGE");
             if (string.IsNullOrEmpty(imageName))
             {
@@ -420,6 +423,27 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
             {
                 Container = null;
             }
+
+            // TODO: HACK ALERT - DONT CHECK THIS IN OUTSIDE OF USER BRANCHS
+
+            var containerNetwork = Variables.Get(Constants.Variables.Agent.ContainerNetwork);
+            // Docker (Sidecar Containers)
+            // TODO: in message add something like message.SidecarContainers
+            // SidecarContainers = nginx, redis, mysql, ...
+            var nginxContainer = new Pipelines.ContainerResource();
+            nginxContainer.Properties.Set("image", "nginx");
+            nginxContainer.Alias = "nginx";
+            var redisContainer = new Pipelines.ContainerResource();
+            redisContainer.Properties.Set("image", "redis");
+            redisContainer.Alias = "redis";
+
+            var nginx = new ContainerInfo(HostContext, nginxContainer);
+            // nginx.ContainerNetwork = "test-network";
+            var redis = new ContainerInfo(HostContext, redisContainer);
+            // redis.ContainerNetwork = "test-network";
+            SidecarContainers = new List<ContainerInfo>() {
+                nginx, redis
+            };
 
             // Proxy variables
             var agentWebProxy = HostContext.GetService<IVstsAgentWebProxy>();

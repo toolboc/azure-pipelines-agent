@@ -131,9 +131,11 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
                     Stack<IStep> postJobStepsBuilder = new Stack<IStep>();
                     Dictionary<Guid, Variables> taskVariablesMapping = new Dictionary<Guid, Variables>();
 
+                    var containerProvider = HostContext.GetService<IContainerOperationProvider>();
+
+                    // Single container create per job + single network cleanup after
                     if (context.Container != null)
                     {
-                        var containerProvider = HostContext.GetService<IContainerOperationProvider>();
                         initResult.PreJobSteps.Add(new JobExtensionRunner(runAsync: containerProvider.StartContainerAsync,
                                                                           condition: ExpressionManager.Succeeded,
                                                                           displayName: StringUtil.Loc("InitializeContainer"),
@@ -142,6 +144,25 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
                                                                         condition: ExpressionManager.Always,
                                                                         displayName: StringUtil.Loc("StopContainer"),
                                                                         data: (object)jobContext.Container));
+                    }
+
+                    foreach (var sidecar in jobContext.SidecarContainers)
+                    {
+                        initResult.PreJobSteps.Add(new JobExtensionRunner(runAsync: containerProvider.StartContainerAsync,
+                                                                          condition: ExpressionManager.Succeeded,
+                                                                          displayName: $"Starting '{sidecar.ContainerName}' Sidecar Container",
+                                                                          data: (object)sidecar));
+                        postJobStepsBuilder.Push(new JobExtensionRunner(runAsync: containerProvider.StopContainerAsync,
+                                                                        condition: ExpressionManager.Always,
+                                                                        displayName: $"Stopping '{sidecar.ContainerName}' Sidecar Container",
+                                                                        data: (object)sidecar));
+                    }
+                    if (context.Container != null || jobContext.SidecarContainers != null)
+                    {
+                        postJobStepsBuilder.Push(new JobExtensionRunner(runAsync: containerProvider.RemoveContainerNetworkAsync,
+                                                                        condition: ExpressionManager.Always,
+                                                                        displayName: $"Removing job container network",
+                                                                        data: null));
                     }
 
                     foreach (var task in message.Steps.OfType<Pipelines.TaskStep>())
