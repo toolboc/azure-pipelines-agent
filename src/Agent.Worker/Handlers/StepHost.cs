@@ -91,14 +91,13 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker.Handlers
             // remove double quotes around the path
             path = path.Trim('\"');
 
-            // try to resolve path inside container if the request path is part of the mount volume
-            // otherwise just return the file name and rely on the file is part of the %PATH% inside the container.
 #if OS_WINDOWS
             if (Container.MountVolumes.Exists(x => path.StartsWith(x.SourceVolumePath, StringComparison.OrdinalIgnoreCase)))
 #else
             if (Container.MountVolumes.Exists(x => path.StartsWith(x.SourceVolumePath)))
 #endif
             {
+                // try to resolve path inside container if the request path is part of the mount volume
                 return Container.TranslateToContainerPath(path);
             }
 #if OS_WINDOWS
@@ -107,11 +106,22 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker.Handlers
             else if (Container.MountVolumes.Exists(x => path.StartsWith(x.TargetVolumePath)))
 #endif
             {
+                // skip container path resolve, since the request path is already a path inside the container
                 return path;
             }
             else
             {
-                return Path.GetFileName(path);
+                var containerPath = Container.TranslateToContainerPath(path);
+                if (!string.Equals(containerPath, path, StringComparison.Ordinal))
+                {
+                    // the request path is not part of the mount volume, but it might match some path in the folder structure. 
+                    return containerPath;
+                }
+                else
+                {
+                    // otherwise just return the file name and rely on the file is part of the %PATH% inside the container.
+                    return Path.GetFileName(path);
+                }
             }
         }
 
