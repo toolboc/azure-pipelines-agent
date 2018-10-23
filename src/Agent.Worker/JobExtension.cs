@@ -131,15 +131,9 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
                     Stack<IStep> postJobStepsBuilder = new Stack<IStep>();
                     Dictionary<Guid, Variables> taskVariablesMapping = new Dictionary<Guid, Variables>();
 
-                    if (context.Container != null || jobContext.SidecarContainers != null)
+                    if (context.Container != null || context.SidecarContainers != null)
                     {
                         var containerProvider = HostContext.GetService<IContainerOperationProvider>();
-                        // All containers join one bridge network, remove it last after removing containers
-                        // postJobStepsBuilder.Push(new JobExtensionRunner(runAsync: containerProvider.RemoveContainerNetworkAsync,
-                        //                                                 condition: ExpressionManager.Always,
-                        //                                                 displayName: $"Removing job container network",
-                        //                                                 data: null));
-
                         var containers = new List<Container.ContainerInfo>();
                         if (context.Container != null)
                         {
@@ -155,32 +149,9 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
                                                                           data: (object)containers));
                         postJobStepsBuilder.Push(new JobExtensionRunner(runAsync: containerProvider.StopMultipleContainersAsync,
                                                                         condition: ExpressionManager.Always,
-                                                                        displayName: containers.Count > 1 ? "Initializing Containers" : "Initializing Container",
+                                                                        displayName: containers.Count > 1 ? "Stopping Containers" : "Stopping Container",
                                                                         data: (object)containers));
                     }
-                    // foreach (var sidecar in jobContext.SidecarContainers)
-                    // {
-                    //     initResult.PreJobSteps.Add(new JobExtensionRunner(runAsync: containerProvider.StartContainerAsync,
-                    //                                                       condition: ExpressionManager.Succeeded,
-                    //                                                       displayName: $"Starting '{sidecar.ContainerName}' Sidecar Container",
-                    //                                                       data: (object)sidecar));
-                    //     postJobStepsBuilder.Push(new JobExtensionRunner(runAsync: containerProvider.StopContainerAsync,
-                    //                                                     condition: ExpressionManager.Always,
-                    //                                                     displayName: $"Stopping '{sidecar.ContainerName}' Sidecar Container",
-                    //                                                     data: (object)sidecar));
-                    // }
-                    // if (context.Container != null)
-                    // {
-                    //     initResult.PreJobSteps.Add(new JobExtensionRunner(runAsync: containerProvider.StartContainerAsync,
-                    //                                                       condition: ExpressionManager.Succeeded,
-                    //                                                       displayName: StringUtil.Loc("InitializeContainer"),
-                    //                                                       data: (object)jobContext.Container));
-                    //     postJobStepsBuilder.Push(new JobExtensionRunner(runAsync: containerProvider.StopContainerAsync,
-                    //                                                     condition: ExpressionManager.Always,
-                    //                                                     displayName: StringUtil.Loc("StopContainer"),
-                    //                                                     data: (object)jobContext.Container));
-                    // }
-
 
                     foreach (var task in message.Steps.OfType<Pipelines.TaskStep>())
                     {

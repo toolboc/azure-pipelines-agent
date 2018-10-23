@@ -483,11 +483,20 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
             List<ContainerInfo> containers = data as List<ContainerInfo>;
             ArgUtil.NotNull(containers, nameof(containers));
 
+            var uniqueNetworks = new HashSet<string>();
             foreach (var container in containers)
             {
                 await StopContainerAsync(executionContext, container);
+                if (!uniqueNetworks.Contains(container.ContainerNetwork) && container.ContainerNetwork != null)
+                {
+                    uniqueNetworks.Add(container.ContainerNetwork);
+                }
             }
-            await RemoveContainerNetworkAsync(executionContext, containers.First(c => c.ContainerNetwork != null).ContainerNetwork);
+            // Remove any unique network created for the job. There will usually be only one
+            foreach (var networkId in uniqueNetworks)
+            {
+                await RemoveContainerNetworkAsync(executionContext, networkId);
+            }
         }
     }
 }
