@@ -131,37 +131,55 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
                     Stack<IStep> postJobStepsBuilder = new Stack<IStep>();
                     Dictionary<Guid, Variables> taskVariablesMapping = new Dictionary<Guid, Variables>();
 
-                    var containerProvider = HostContext.GetService<IContainerOperationProvider>();
                     if (context.Container != null || jobContext.SidecarContainers != null)
                     {
+                        var containerProvider = HostContext.GetService<IContainerOperationProvider>();
                         // All containers join one bridge network, remove it last after removing containers
-                        postJobStepsBuilder.Push(new JobExtensionRunner(runAsync: containerProvider.RemoveContainerNetworkAsync,
-                                                                        condition: ExpressionManager.Always,
-                                                                        displayName: $"Removing job container network",
-                                                                        data: null));
-                    }
-                    foreach (var sidecar in jobContext.SidecarContainers)
-                    {
-                        initResult.PreJobSteps.Add(new JobExtensionRunner(runAsync: containerProvider.StartContainerAsync,
+                        // postJobStepsBuilder.Push(new JobExtensionRunner(runAsync: containerProvider.RemoveContainerNetworkAsync,
+                        //                                                 condition: ExpressionManager.Always,
+                        //                                                 displayName: $"Removing job container network",
+                        //                                                 data: null));
+
+                        var containers = new List<Container.ContainerInfo>();
+                        if (context.Container != null)
+                        {
+                            containers.Add(context.Container);
+                        }
+                        if (context.SidecarContainers != null)
+                        {
+                            containers.AddRange(context.SidecarContainers);
+                        }
+                        initResult.PreJobSteps.Add(new JobExtensionRunner(runAsync: containerProvider.StartMultipleContainersAsync,
                                                                           condition: ExpressionManager.Succeeded,
-                                                                          displayName: $"Starting '{sidecar.ContainerName}' Sidecar Container",
-                                                                          data: (object)sidecar));
-                        postJobStepsBuilder.Push(new JobExtensionRunner(runAsync: containerProvider.StopContainerAsync,
+                                                                          displayName: containers.Count > 1 ? "Initializing Containers" : "Initializing Container",
+                                                                          data: (object)containers));
+                        postJobStepsBuilder.Push(new JobExtensionRunner(runAsync: containerProvider.StopMultipleContainersAsync,
                                                                         condition: ExpressionManager.Always,
-                                                                        displayName: $"Stopping '{sidecar.ContainerName}' Sidecar Container",
-                                                                        data: (object)sidecar));
+                                                                        displayName: containers.Count > 1 ? "Initializing Containers" : "Initializing Container",
+                                                                        data: (object)containers));
                     }
-                    if (context.Container != null)
-                    {
-                        initResult.PreJobSteps.Add(new JobExtensionRunner(runAsync: containerProvider.StartContainerAsync,
-                                                                          condition: ExpressionManager.Succeeded,
-                                                                          displayName: StringUtil.Loc("InitializeContainer"),
-                                                                          data: (object)jobContext.Container));
-                        postJobStepsBuilder.Push(new JobExtensionRunner(runAsync: containerProvider.StopContainerAsync,
-                                                                        condition: ExpressionManager.Always,
-                                                                        displayName: StringUtil.Loc("StopContainer"),
-                                                                        data: (object)jobContext.Container));
-                    }
+                    // foreach (var sidecar in jobContext.SidecarContainers)
+                    // {
+                    //     initResult.PreJobSteps.Add(new JobExtensionRunner(runAsync: containerProvider.StartContainerAsync,
+                    //                                                       condition: ExpressionManager.Succeeded,
+                    //                                                       displayName: $"Starting '{sidecar.ContainerName}' Sidecar Container",
+                    //                                                       data: (object)sidecar));
+                    //     postJobStepsBuilder.Push(new JobExtensionRunner(runAsync: containerProvider.StopContainerAsync,
+                    //                                                     condition: ExpressionManager.Always,
+                    //                                                     displayName: $"Stopping '{sidecar.ContainerName}' Sidecar Container",
+                    //                                                     data: (object)sidecar));
+                    // }
+                    // if (context.Container != null)
+                    // {
+                    //     initResult.PreJobSteps.Add(new JobExtensionRunner(runAsync: containerProvider.StartContainerAsync,
+                    //                                                       condition: ExpressionManager.Succeeded,
+                    //                                                       displayName: StringUtil.Loc("InitializeContainer"),
+                    //                                                       data: (object)jobContext.Container));
+                    //     postJobStepsBuilder.Push(new JobExtensionRunner(runAsync: containerProvider.StopContainerAsync,
+                    //                                                     condition: ExpressionManager.Always,
+                    //                                                     displayName: StringUtil.Loc("StopContainer"),
+                    //                                                     data: (object)jobContext.Container));
+                    // }
 
 
                     foreach (var task in message.Steps.OfType<Pipelines.TaskStep>())

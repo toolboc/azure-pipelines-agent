@@ -21,6 +21,8 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
         Task StopContainerAsync(IExecutionContext executionContext, object data);
         Task CreateContainerNetworkAsync(IExecutionContext executionContext, object data);
         Task RemoveContainerNetworkAsync(IExecutionContext executionContext, object data);
+        Task StartMultipleContainersAsync(IExecutionContext executionContext, object data);
+        Task StopMultipleContainersAsync(IExecutionContext executionContext, object data);
     }
 
     public class ContainerOperationProvider : AgentService, IContainerOperationProvider
@@ -421,7 +423,6 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
         }
 #endif
 
-#if !OS_WINDOWS
         public async Task CreateContainerNetworkAsync(IExecutionContext executionContext, object data)
         {
             Trace.Entering();
@@ -436,7 +437,6 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
             // Expose docker network to env
             executionContext.Variables.Set(Constants.Variables.Agent.ContainerNetwork, containerNetwork);
         }
-#endif
 
         public async Task RemoveContainerNetworkAsync(IExecutionContext executionContext, object data)
         {
@@ -459,6 +459,35 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
                 // Remove docker network from env
                 executionContext.Variables.Set(Constants.Variables.Agent.ContainerNetwork, null);
             }
+        }
+
+        public async Task StartMultipleContainersAsync(IExecutionContext executionContext, object data)
+        {
+            Trace.Entering();
+            ArgUtil.NotNull(executionContext, nameof(executionContext));
+
+            List<ContainerInfo> containers = data as List<ContainerInfo>;
+            ArgUtil.NotNull(containers, nameof(containers));
+
+            foreach (var container in containers)
+            {
+                await StartContainerAsync(executionContext, container);
+            }
+        }
+
+        public async Task StopMultipleContainersAsync(IExecutionContext executionContext, object data)
+        {
+            Trace.Entering();
+            ArgUtil.NotNull(executionContext, nameof(executionContext));
+
+            List<ContainerInfo> containers = data as List<ContainerInfo>;
+            ArgUtil.NotNull(containers, nameof(containers));
+
+            foreach (var container in containers)
+            {
+                await StopContainerAsync(executionContext, container);
+            }
+            await RemoveContainerNetworkAsync(executionContext, containers.First(c => c.ContainerNetwork != null).ContainerNetwork);
         }
     }
 }
