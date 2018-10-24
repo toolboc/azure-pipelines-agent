@@ -214,13 +214,16 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
                     }
                 }
 #endif
+                string node = executionContext.Container.TranslateToContainerPath(Path.Combine(HostContext.GetDirectory(WellKnownDirectory.Externals), "node", "bin", $"node{IOUtil.ExeExtension}"));
+                string sleepCommand = $"\"{node}\" -e \"setInterval(function(){{}}, 24 * 60 * 60 * 1000);\"";
                 container.ContainerId = await _dockerManger.DockerCreate(context: executionContext,
                                                                          displayName: container.ContainerDisplayName,
                                                                          image: container.ContainerImage,
                                                                          mountVolumes: container.MountVolumes,
                                                                          network: container.ContainerNetwork,
                                                                          options: container.ContainerCreateOptions,
-                                                                         environment: container.ContainerEnvironmentVariables);
+                                                                         environment: container.ContainerEnvironmentVariables,
+                                                                         command: sleepCommand);
                 ArgUtil.NotNullOrEmpty(container.ContainerId, nameof(container.ContainerId));
                 executionContext.Variables.Set(Constants.Variables.Agent.ContainerId, container.ContainerId);
 
