@@ -429,7 +429,8 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
 
             // TODO: HACK ALERT - DONT CHECK THIS IN OUTSIDE OF USER BRANCHS
             string services = "mocked";
-            if (String.IsNullOrEmpty(services))
+            // In the future this is where we will create containers from job message
+            if (!String.IsNullOrEmpty(services))
             {
                 var containerNetwork = Variables.Get(Constants.Variables.Agent.ContainerNetwork);
                 // Docker (Sidecar Containers)
