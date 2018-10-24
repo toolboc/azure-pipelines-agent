@@ -418,6 +418,7 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
             else if (!string.IsNullOrEmpty(message.JobContainer))
             {
                 Container = new ContainerInfo(HostContext, message.Resources.Containers.Single(x => string.Equals(x.Alias, message.JobContainer, StringComparison.OrdinalIgnoreCase)));
+                Container.UseNodeSleepCommand(HostContext);
             }
             else
             {

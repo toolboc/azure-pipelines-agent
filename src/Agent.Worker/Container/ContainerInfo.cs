@@ -29,6 +29,7 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker.Container
             this.ContainerCreateOptions = container.Properties.Get<string>("options");
             this.SkipContainerImagePull = container.Properties.Get<bool>("localimage");
             this.ContainerEnvironmentVariables = container.Environment;
+            this.ContainerCommand = container.Properties.Get<string>("command", defaultValue: "");
 
 #if OS_WINDOWS            
             _pathMappings[hostContext.GetDirectory(WellKnownDirectory.Tools)] = "C:\\__t"; // Tool cache folder may come from ENV, so we need a unique folder to avoid collision
@@ -46,6 +47,7 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker.Container
         public string ContainerNetwork { get; set; }
         public string ContainerImage { get; set; }
         public string ContainerName { get; set; }
+        public string ContainerCommand { get; private set; }
         public Guid ContainerRegistryEndpoint { get; private set; }
         public string ContainerCreateOptions { get; private set; }
         public bool SkipContainerImagePull { get; private set; }
@@ -133,6 +135,13 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker.Container
             }
 
             return path;
+        }
+
+        public void UseNodeSleepCommand(IHostContext hostContext)
+        {
+            string node = TranslateToContainerPath(Path.Combine(hostContext.GetDirectory(WellKnownDirectory.Externals), "node", "bin", $"node{IOUtil.ExeExtension}"));
+            string sleepCommand = $"\"{node}\" -e \"setInterval(function(){{}}, 24 * 60 * 60 * 1000);\"";
+            ContainerCommand = sleepCommand;
         }
     }
 

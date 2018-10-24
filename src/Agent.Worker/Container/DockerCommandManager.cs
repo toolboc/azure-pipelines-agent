@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker.Container
             return await ExecuteDockerCommandAsync(context, "pull", image, context.CancellationToken);
         }
 
-        public async Task<string> DockerCreate(IExecutionContext context, string displayName, string image, List<MountVolume> mountVolumes, string network, string options, IDictionary<string, string> environment, string command = "")
+        public async Task<string> DockerCreate(IExecutionContext context, string displayName, string image, List<MountVolume> mountVolumes, string network, string options, IDictionary<string, string> environment, string command)
         {
             string dockerMountVolumesArgs = string.Empty;
             if (mountVolumes?.Count > 0)
@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker.Container
             }
 
 #if OS_WINDOWS
-            string dockerArgs = $"--name {displayName} {options} {dockerEnvArgs} {dockerMountVolumesArgs} {image} {sleepCommand}";  // add --network={network} and -v '\\.\pipe\docker_engine:\\.\pipe\docker_engine' when they are available (17.09)
+            string dockerArgs = $"--name {displayName} {options} {dockerEnvArgs} {dockerMountVolumesArgs} {image} {command}";  // add --network={network} and -v '\\.\pipe\docker_engine:\\.\pipe\docker_engine' when they are available (17.09)
 #else
             string dockerArgs = $"--name {displayName} --network={network} -v /var/run/docker.sock:/var/run/docker.sock {options} {dockerEnvArgs} {dockerMountVolumesArgs} {image} {command}";
 #endif
