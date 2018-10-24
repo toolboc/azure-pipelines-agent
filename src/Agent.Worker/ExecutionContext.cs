@@ -418,7 +418,9 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
             else if (!string.IsNullOrEmpty(message.JobContainer))
             {
                 Container = new ContainerInfo(HostContext, message.Resources.Containers.Single(x => string.Equals(x.Alias, message.JobContainer, StringComparison.OrdinalIgnoreCase)));
-                Container.UseNodeSleepCommand(HostContext);
+                string node = Container.TranslateToContainerPath(Path.Combine(HostContext.GetDirectory(WellKnownDirectory.Externals), "node", "bin", $"node{IOUtil.ExeExtension}"));
+                string sleepCommand = $"\"{node}\" -e \"setInterval(function(){{}}, 24 * 60 * 60 * 1000);\"";
+                Container.ContainerCommand = sleepCommand;
             }
             else
             {
@@ -426,25 +428,28 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
             }
 
             // TODO: HACK ALERT - DONT CHECK THIS IN OUTSIDE OF USER BRANCHS
+            string services = "mocked";
+            if (String.IsNullOrEmpty(services))
+            {
+                var containerNetwork = Variables.Get(Constants.Variables.Agent.ContainerNetwork);
+                // Docker (Sidecar Containers)
+                // TODO: in message add something like message.SidecarContainers
+                // SidecarContainers = nginx, redis, mysql, ...
+                var nginxContainer = new Pipelines.ContainerResource();
+                nginxContainer.Properties.Set("image", "nginx");
+                nginxContainer.Properties.Set("displayname", "nginx");
+                nginxContainer.Alias = "nginx";
+                var redisContainer = new Pipelines.ContainerResource();
+                redisContainer.Properties.Set("image", "redis");
+                redisContainer.Properties.Set("displayname", "redis");
+                redisContainer.Alias = "redis";
 
-            var containerNetwork = Variables.Get(Constants.Variables.Agent.ContainerNetwork);
-            // Docker (Sidecar Containers)
-            // TODO: in message add something like message.SidecarContainers
-            // SidecarContainers = nginx, redis, mysql, ...
-            var nginxContainer = new Pipelines.ContainerResource();
-            nginxContainer.Properties.Set("image", "nginx");
-            nginxContainer.Alias = "nginx";
-            var redisContainer = new Pipelines.ContainerResource();
-            redisContainer.Properties.Set("image", "redis");
-            redisContainer.Alias = "redis";
-
-            var nginx = new ContainerInfo(HostContext, nginxContainer);
-            // nginx.ContainerNetwork = "test-network";
-            var redis = new ContainerInfo(HostContext, redisContainer);
-            // redis.ContainerNetwork = "test-network";
-            SidecarContainers = new List<ContainerInfo>() {
-                nginx, redis
-            };
+                var nginx = new ContainerInfo(HostContext, nginxContainer);
+                var redis = new ContainerInfo(HostContext, redisContainer);
+                SidecarContainers = new List<ContainerInfo>() {
+                    nginx, redis
+                };
+            }
 
             // Proxy variables
             var agentWebProxy = HostContext.GetService<IVstsAgentWebProxy>();
