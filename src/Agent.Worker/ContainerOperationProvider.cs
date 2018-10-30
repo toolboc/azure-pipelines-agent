@@ -105,6 +105,23 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
                 throw new NotSupportedException(StringUtil.Loc("MinRequiredDockerClientVersion", requiredDockerVersion, _dockerManger.DockerPath, dockerVersion.ClientVersion));
             }
 
+            // Clean up containers left by previous runs
+            executionContext.Debug($"Delete stale containers from previous jobs");
+            int containerPruneExitCode = await _dockerManger.DockerContainerPrune(executionContext);
+            if (containerPruneExitCode != 0)
+            {
+                executionContext.Warning($"Delete stale containers failed, docker container prune fail with exit code {containerPruneExitCode}");
+            }
+
+#if !OS_WINDOWS
+            executionContext.Debug($"Delete stale container networks from previous jobs");
+            int networkPruneExitCode = await _dockerManger.DockerNetworkPrune(executionContext);
+            if (networkPruneExitCode != 0)
+            {
+                executionContext.Warning($"Delete stale container networks failed, docker network prune fail with exit code {networkPruneExitCode}");
+            }
+#endif
+
             // Login to private docker registry
             string registryServer = string.Empty;
             if (container.ContainerRegistryEndpoint != Guid.Empty)

@@ -23,20 +23,25 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker.Container
         Task<int> DockerLogs(IExecutionContext context, string containerId);
         Task<List<string>> DockerPS(IExecutionContext context, string containerId, string filter);
         Task<int> DockerRemove(IExecutionContext context, string containerId);
+        Task<int> DockerContainerPrune(IExecutionContext context);
         Task<int> DockerNetworkCreate(IExecutionContext context, string network);
         Task<int> DockerNetworkRemove(IExecutionContext context, string network);
+        Task<int> DockerNetworkPrune(IExecutionContext context);
         Task<int> DockerExec(IExecutionContext context, string containerId, string options, string command);
         Task<int> DockerExec(IExecutionContext context, string containerId, string options, string command, List<string> outputs);
     }
 
     public class DockerCommandManager : AgentService, IDockerCommandManager
     {
+        private string _agentInstanceLabel;
+
         public string DockerPath { get; private set; }
 
         public override void Initialize(IHostContext hostContext)
         {
             base.Initialize(hostContext);
             DockerPath = WhichUtil.Which("docker", true, Trace);
+            _agentInstanceLabel = IOUtil.GetPathHash(hostContext.GetDirectory(WellKnownDirectory.Bin)).Substring(0, 5);
         }
 
         public async Task<DockerVersion> DockerVersion(IExecutionContext context)
@@ -123,9 +128,9 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker.Container
             string node = context.Container.TranslateToContainerPath(Path.Combine(HostContext.GetDirectory(WellKnownDirectory.Externals), "node", "bin", $"node{IOUtil.ExeExtension}"));
             string sleepCommand = $"\"{node}\" -e \"setInterval(function(){{}}, 24 * 60 * 60 * 1000);\"";
 #if OS_WINDOWS
-            string dockerArgs = $"--name {displayName} {options} {dockerEnvArgs} {dockerMountVolumesArgs} {image} {sleepCommand}";  // add --network={network} and -v '\\.\pipe\docker_engine:\\.\pipe\docker_engine' when they are available (17.09)
+            string dockerArgs = $"--name {displayName} --label {_agentInstanceLabel} {options} {dockerEnvArgs} {dockerMountVolumesArgs} {image} {sleepCommand}";  // add --network={network} and -v '\\.\pipe\docker_engine:\\.\pipe\docker_engine' when they are available (17.09)
 #else
-            string dockerArgs = $"--name {displayName} --network={network} -v /var/run/docker.sock:/var/run/docker.sock {options} {dockerEnvArgs} {dockerMountVolumesArgs} {image} {sleepCommand}";
+            string dockerArgs = $"--name {displayName} --network={network} --label {_agentInstanceLabel} -v /var/run/docker.sock:/var/run/docker.sock {options} {dockerEnvArgs} {dockerMountVolumesArgs} {image} {sleepCommand}";
 #endif
             List<string> outputStrings = await ExecuteDockerCommandAsync(context, "create", dockerArgs);
             return outputStrings.FirstOrDefault();
@@ -146,6 +151,11 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker.Container
             return await ExecuteDockerCommandAsync(context, "rm", containerId, context.CancellationToken);
         }
 
+        public async Task<int> DockerContainerPrune(IExecutionContext context)
+        {
+            return await ExecuteDockerCommandAsync(context, "container", $"prune --force --filter \"label={_agentInstanceLabel}\"", context.CancellationToken);
+        }
+
         public async Task<int> DockerLogs(IExecutionContext context, string containerId)
         {
             return await ExecuteDockerCommandAsync(context, "logs", $"--details {containerId}", context.CancellationToken);
@@ -158,12 +168,17 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker.Container
 
         public async Task<int> DockerNetworkCreate(IExecutionContext context, string network)
         {
-            return await ExecuteDockerCommandAsync(context, "network", $"create {network}", context.CancellationToken);
+            return await ExecuteDockerCommandAsync(context, "network", $"create --label {_agentInstanceLabel} {network}", context.CancellationToken);
         }
 
         public async Task<int> DockerNetworkRemove(IExecutionContext context, string network)
         {
             return await ExecuteDockerCommandAsync(context, "network", $"rm {network}", context.CancellationToken);
+        }
+
+        public async Task<int> DockerNetworkPrune(IExecutionContext context)
+        {
+            return await ExecuteDockerCommandAsync(context, "network", $"prune --force --filter \"label={_agentInstanceLabel}\"", context.CancellationToken);
         }
 
         public async Task<int> DockerExec(IExecutionContext context, string containerId, string options, string command)
