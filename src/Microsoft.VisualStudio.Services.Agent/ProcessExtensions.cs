@@ -266,10 +266,10 @@ namespace Microsoft.VisualStudio.Services.Agent
             public int InheritedFromUniqueProcessId;
         };
 
-        [DllImport("ntdll.dll", SetLastError = true)]
+        [DllImport("ntdll.dll", SetLastError = true, EntryPoint = "NtQueryInformationProcess")]
         private static extern int NtQueryInformationProcess64(IntPtr processHandle, PROCESSINFOCLASS processInformationClass, ref PROCESS_BASIC_INFORMATION64 processInformation, int processInformationLength, ref int returnLength);
 
-        [DllImport("ntdll.dll", SetLastError = true)]
+        [DllImport("ntdll.dll", SetLastError = true, EntryPoint = "NtQueryInformationProcess")]
         private static extern int NtQueryInformationProcess32(IntPtr processHandle, PROCESSINFOCLASS processInformationClass, ref PROCESS_BASIC_INFORMATION32 processInformation, int processInformationLength, ref int returnLength);
 
         [DllImport("kernel32.dll", SetLastError = true)]
