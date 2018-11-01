@@ -11,6 +11,7 @@ using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.DistributedTask.Pipelines;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using Microsoft.VisualStudio.Services.Agent.Util;
+using Environment = System.Environment;
 
 namespace Microsoft.VisualStudio.Services.Agent.Worker.Build
 {

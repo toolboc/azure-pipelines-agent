@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.VisualStudio.Services.OAuth;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Environment = System.Environment;
 
 namespace Microsoft.VisualStudio.Services.Agent.Listener
 {

@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Environment = System.Environment;
 
 namespace Microsoft.VisualStudio.Services.Agent.Worker
 {

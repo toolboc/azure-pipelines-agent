@@ -19,6 +19,7 @@ using Newtonsoft.Json;
 using Yaml = Microsoft.TeamFoundation.DistributedTask.Orchestration.Server.Pipelines.Yaml;
 using YamlContracts = Microsoft.TeamFoundation.DistributedTask.Orchestration.Server.Pipelines.Yaml.Contracts;
 using Pipelines = Microsoft.TeamFoundation.DistributedTask.Pipelines;
+using Environment = System.Environment;
 
 namespace Microsoft.VisualStudio.Services.Agent.Listener
 {

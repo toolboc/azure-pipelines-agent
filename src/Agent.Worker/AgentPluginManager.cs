@@ -11,6 +11,7 @@ using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
+using Environment = System.Environment;
 
 namespace Microsoft.VisualStudio.Services.Agent.Worker
 {

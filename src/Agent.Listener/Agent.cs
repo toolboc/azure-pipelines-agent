@@ -9,6 +9,7 @@ using Pipelines = Microsoft.TeamFoundation.DistributedTask.Pipelines;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Environment = System.Environment;
 
 namespace Microsoft.VisualStudio.Services.Agent.Listener
 {

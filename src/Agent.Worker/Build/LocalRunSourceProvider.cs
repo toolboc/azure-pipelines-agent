@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Environment = System.Environment;
 
 namespace Microsoft.VisualStudio.Services.Agent.Worker.Build
 {

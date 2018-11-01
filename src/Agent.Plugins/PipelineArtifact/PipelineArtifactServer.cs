@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.VisualStudio.Services.Agent.Util;
 using Newtonsoft.Json;
 using Agent.Sdk;
+using Environment = System.Environment;
 
 namespace Agent.Plugins.PipelineArtifact
 {    

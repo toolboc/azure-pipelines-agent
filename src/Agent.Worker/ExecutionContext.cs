@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using Pipelines = Microsoft.TeamFoundation.DistributedTask.Pipelines;
 using Microsoft.VisualStudio.Services.Agent.Util;
+using Environment = System.Environment;
 
 namespace Microsoft.VisualStudio.Services.Agent.Worker
 {
@@ -417,7 +418,10 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
             }
             else if (!string.IsNullOrEmpty(message.JobContainer))
             {
-                Container = new ContainerInfo(HostContext, message.Resources.Containers.Single(x => string.Equals(x.Alias, message.JobContainer, StringComparison.OrdinalIgnoreCase)));
+                var containerResource = message.Resources.Containers.Single(x => string.Equals(x.Alias, message.JobContainer, StringComparison.OrdinalIgnoreCase));
+                // avoid name collision between job container and sidecar containers when sidecar and job container are the same resource
+                containerResource.Properties.Set<string>("displayname", null);
+                Container = new ContainerInfo(HostContext, containerResource);
                 string node = Container.TranslateToContainerPath(Path.Combine(HostContext.GetDirectory(WellKnownDirectory.Externals), "node", "bin", $"node{IOUtil.ExeExtension}"));
                 string sleepCommand = $"\"{node}\" -e \"setInterval(function(){{}}, 24 * 60 * 60 * 1000);\"";
                 Container.ContainerCommand = sleepCommand;
@@ -443,6 +447,7 @@ namespace Microsoft.VisualStudio.Services.Agent.Worker
                 var redisContainer = new Pipelines.ContainerResource();
                 redisContainer.Properties.Set("image", "redis");
                 redisContainer.Properties.Set("displayname", "redis");
+                redisContainer.Properties.Set("command", "printenv");
                 redisContainer.Alias = "redis";
 
                 var nginx = new ContainerInfo(HostContext, nginxContainer);

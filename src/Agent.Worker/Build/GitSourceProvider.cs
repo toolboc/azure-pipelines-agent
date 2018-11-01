@@ -9,6 +9,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Diagnostics;
+using Environment = System.Environment;
 
 namespace Microsoft.VisualStudio.Services.Agent.Worker.Build
 {

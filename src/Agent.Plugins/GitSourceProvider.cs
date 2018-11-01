@@ -13,6 +13,7 @@ using System.Linq;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.VisualStudio.Services.Agent.Util;
+using Environment = System.Environment;
 
 namespace Agent.Plugins.Repository
 {

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Services.WebApi;
+using Environment = System.Environment;
 
 namespace Microsoft.VisualStudio.Services.Agent.Worker
 {

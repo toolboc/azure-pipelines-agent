@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
 using Microsoft.TeamFoundation.DistributedTask.Pipelines;
+using Environment = System.Environment;
 
 namespace Microsoft.VisualStudio.Services.Agent.Worker.Build
 {

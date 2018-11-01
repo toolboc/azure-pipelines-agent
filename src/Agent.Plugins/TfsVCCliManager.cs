@@ -7,6 +7,7 @@ using System.Text;
 using Agent.Sdk;
 using Pipelines = Microsoft.TeamFoundation.DistributedTask.Pipelines;
 using Microsoft.VisualStudio.Services.Agent.Util;
+using Environment = System.Environment;
 
 namespace Agent.Plugins.Repository
 {

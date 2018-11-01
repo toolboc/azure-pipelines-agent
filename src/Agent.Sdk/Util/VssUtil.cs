@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Services.OAuth;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using System.Net;
+using Environment = System.Environment;
 
 namespace Microsoft.VisualStudio.Services.Agent.Util
 {
