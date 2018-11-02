@@ -43,7 +43,7 @@
   <Target Name="Test" DependsOnTargets="GenerateConstant">
     <Exec Command="dotnet build Test/Test.csproj -c $(BUILDCONFIG) /p:PackageRuntime=$(PackageRuntime)" ConsoleToMSBuild="true" />
     <Exec Command="dotnet test Test/Test.csproj --no-build --logger:trx" ConsoleToMSBuild="true" />
-    <Message Text="##vso[artifact.upload artifacttype=Container;artifactname=test_log;containerfolder=$(PackageRuntime);]$(MSBuildProjectDirectory)/Test/TestLogs" Importance="high"/>
+    <Message Text="##vso[artifact.upload artifacttype=Container;artifactname=$(PackageRuntime);containerfolder=test_log;]$(MSBuildProjectDirectory)/Test/TestLogs" Importance="high"/>
   </Target>
 
   <Target Name="Layout" DependsOnTargets="Clean;Build">
