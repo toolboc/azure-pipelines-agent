@@ -50,11 +50,19 @@ namespace Microsoft.VisualStudio.Services.Agent.Tests
                         {
                             Console.WriteLine($"Read env from {timeout.Id}");
                             var value = timeout.GetEnvironmentVariable(hc, envName);
+#if OS_OSX                            
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                Console.WriteLine($"Find the env: {value}");
+                                return;
+                            }
+#else
                             if (string.Equals(value, envValue, StringComparison.OrdinalIgnoreCase))
                             {
                                 Console.WriteLine($"Find the env!");
                                 return;
                             }
+#endif                            
                         }
                         catch (Exception ex)
                         {
