@@ -29,10 +29,11 @@ namespace Microsoft.VisualStudio.Services.Agent.Tests
                 Task<int> sleep = null;
                 try
                 {
-                    string node = Path.Combine(TestUtil.GetSrcPath(), @"..\_layout\externals\node\bin\node");
 #if OS_WINDOWS
+                    string node = Path.Combine(TestUtil.GetSrcPath(), @"..\_layout\externals\node\bin\node");
                     sleep = processInvoker.ExecuteAsync("", node, "-e \"setInterval(function(){{}}, 60 * 1000);\"", new Dictionary<String, String>() { { envName, envValue } }, requireExitCodeZero: false, outputEncoding: null, killProcessOnCancel: false, cancellationToken: tokenSource.Token);
 #else
+                    string node = Path.Combine(TestUtil.GetSrcPath(), @"../_layout/externals/node/bin/node");
                     sleep = processInvoker.ExecuteAsync("", node, "-e \"setInterval(function(){{}}, 60 * 1000);\"", new Dictionary<String, String>() { { envName, envValue } }, requireExitCodeZero: false, outputEncoding: null, killProcessOnCancel: false, cancellationToken: tokenSource.Token);
 #endif
 
