@@ -47,11 +47,11 @@ namespace Microsoft.VisualStudio.Services.Agent.Tests
                     {
                         try
                         {
-                            trace.Info($"Read env from {timeout.Id}");
+                            Console.WriteLine($"Read env from {timeout.Id}");
                             var value = timeout.GetEnvironmentVariable(hc, envName);
                             if (string.Equals(value, envValue, StringComparison.OrdinalIgnoreCase))
                             {
-                                trace.Info($"Find the env!");
+                                Console.WriteLine($"Find the env!");
                                 return;
                             }
                         }
