@@ -31,10 +31,10 @@ namespace Microsoft.VisualStudio.Services.Agent.Tests
                 {
 #if OS_WINDOWS
                     string node = Path.Combine(TestUtil.GetSrcPath(), @"..\_layout\externals\node\bin\node");
-                    sleep = processInvoker.ExecuteAsync("", node, "-e \"setInterval(function(){{}}, 60 * 1000);\"", new Dictionary<String, String>() { { envName, envValue } }, requireExitCodeZero: false, outputEncoding: null, killProcessOnCancel: false, cancellationToken: tokenSource.Token);
+                    sleep = processInvoker.ExecuteAsync("", node, "-e \"setTimeout(function(){{}}, 30 * 1000);\"", new Dictionary<String, String>() { { envName, envValue } }, requireExitCodeZero: false, outputEncoding: null, killProcessOnCancel: false, cancellationToken: tokenSource.Token);
 #else
                     string node = Path.Combine(TestUtil.GetSrcPath(), @"../_layout/externals/node/bin/node");
-                    sleep = processInvoker.ExecuteAsync("", node, "-e \"setInterval(function(){{}}, 60 * 1000);\"", new Dictionary<String, String>() { { envName, envValue } }, requireExitCodeZero: false, outputEncoding: null, killProcessOnCancel: false, cancellationToken: tokenSource.Token);
+                    sleep = processInvoker.ExecuteAsync("", node, "-e \"setTimeout(function(){{}}, 30 * 1000);\"", new Dictionary<String, String>() { { envName, envValue } }, requireExitCodeZero: false, outputEncoding: null, killProcessOnCancel: false, cancellationToken: tokenSource.Token);
 #endif
 
                     var timeouts = Process.GetProcessesByName("node");
