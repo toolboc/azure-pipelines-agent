@@ -40,7 +40,7 @@ elif [[ "$CURRENT_PLATFORM" == 'linux' ]]; then
         CPU_NAME=$(uname -m)
         case $CPU_NAME in
             armv7l) RUNTIME_ID="linux-arm";;
-            aarch64) RUNTIME_ID="linux-arm";;
+            aarch64) RUNTIME_ID="linux-arm64";;
         esac
     fi
 elif [[ "$CURRENT_PLATFORM" == 'darwin' ]]; then
@@ -49,7 +49,7 @@ fi
 
 # Make sure current platform support publish the dotnet runtime
 # Windows can publish win-x86/x64
-# Linux can publish linux-x64/arm
+# Linux can publish linux-x64/arm/arm64
 # OSX can publish osx-x64
 if [[ "$CURRENT_PLATFORM" == 'windows' ]]; then
    if [[ ("$RUNTIME_ID" != 'win-x86') && ("$RUNTIME_ID" != 'win-x64') ]]; then
@@ -57,7 +57,7 @@ if [[ "$CURRENT_PLATFORM" == 'windows' ]]; then
       exit 1
    fi
 elif [[ "$CURRENT_PLATFORM" == 'linux' ]]; then
-   if [[ ("$RUNTIME_ID" != 'linux-x64') && ("$RUNTIME_ID" != 'linux-arm') ]]; then
+   if [[ ("$RUNTIME_ID" != 'linux-x64') && ("$RUNTIME_ID" != 'linux-arm') && ("$RUNTIME_ID" != 'linux-arm64') ]]; then
       echo "Failed: Can't build $RUNTIME_ID package $CURRENT_PLATFORM" >&2
       exit 1
    fi
